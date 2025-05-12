@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import ast
 import inspect
 from abc import ABCMeta
@@ -106,7 +107,15 @@ def extract_class_source_code(
 def create_or_modify_pyi(
     component_class: type, class_name: str, events: list[str | EventListener]
 ):
+    # Skip in PyInstaller/frozen mode
+    if getattr(sys, 'frozen', False):
+        return
+    
     source_file = Path(inspect.getfile(component_class))
+
+    # Ensure the file path ends with ".py", not ".pyc"
+    if source_file.suffix == ".pyc":
+        source_file = source_file.with_suffix(".py")
 
     source_code = source_file.read_text(encoding="utf-8")
 
